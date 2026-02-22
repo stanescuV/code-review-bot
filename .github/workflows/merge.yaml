@@ -11,11 +11,9 @@ jobs:
         with:
           fetch-depth: 0 
 
-      # 2. Set up your Python environment
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12' # Use whatever version you need
+      # 2. Set up uv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       # 3. Run the Python script, injecting the SHAs as environment variables
       - name: Run Python Analysis
@@ -23,4 +21,4 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: python script.py
+        run: uv run script.py

@@ -5,7 +5,7 @@ from openai import OpenAI
 
 load_dotenv()
 
-client = OpenAI()
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "").strip())
 
 base_sha = os.environ.get('BASE_SHA')
 head_sha = os.environ.get('HEAD_SHA')

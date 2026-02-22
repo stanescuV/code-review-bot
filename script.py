@@ -30,6 +30,7 @@ if not diff:
     print("No changes detected between the two commits.")
     exit(0)
 
+#TODO: Tools, 1 for snippets 1 for whole file. in order to reduce the token consumption and increase quality. 
 response = client.responses.create(
     model="gpt-4.1-mini",
     input=(

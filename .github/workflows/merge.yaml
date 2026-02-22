@@ -1,0 +1,25 @@
+name: Python PR Analysis
+on: [pull_request]
+
+jobs:
+  analyze-pr-data:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout code with full history
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      # 2. Set up your Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12' # Use whatever version you need
+
+      # 3. Run the Python script, injecting the SHAs as environment variables
+      - name: Run Python Analysis
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python script.py

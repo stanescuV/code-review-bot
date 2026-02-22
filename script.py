@@ -31,6 +31,8 @@ if not diff:
     exit(0)
 
 #TODO: Tools, 1 for snippets 1 for whole file. in order to reduce the token consumption and increase quality. 
+#This is a reminder for the todo
+#TEST
 response = client.responses.create(
     model="gpt-4.1-mini",
     input=(

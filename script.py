@@ -1,42 +1,44 @@
 import os
 import subprocess
-import sys
+from dotenv import load_dotenv
+from openai import OpenAI
 
-def run_git_command(command):
-    """Executes a git command and returns the output as a string."""
-    try:
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        print(f"Git command failed: {e}")
-        print(f"Error output: {e.stderr}")
-        sys.exit(1)
+load_dotenv()
 
-def main():
-    base_sha = os.environ.get('BASE_SHA')
-    head_sha = os.environ.get('HEAD_SHA')
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "").strip())
 
-    if not base_sha or not head_sha:
-        print("Error: BASE_SHA or HEAD_SHA environment variable is missing.")
-        sys.exit(1)
+base_sha = os.environ.get('BASE_SHA')
+head_sha = os.environ.get('HEAD_SHA')
 
-    print(f"Analyzing changes: Base ({base_sha}) -> Head ({head_sha})\n")
+if not base_sha or not head_sha:
+    print("Error: BASE_SHA and HEAD_SHA environment variables are required.")
+    exit(1)
 
-    status_cmd = ['git', 'diff', '--name-status', base_sha, head_sha]
-    file_statuses = run_git_command(status_cmd)
-    
-    print("--- Changed Files ---")
-    print(file_statuses)
-    print("---------------------\n")
+result = subprocess.run(
+    ['git', 'diff', base_sha, head_sha],
+    capture_output=True,
+    text=True
+)
 
-    diff_cmd = ['git', 'diff', base_sha, head_sha]
-    full_diff = run_git_command(diff_cmd)
+if result.returncode != 0:
+    print(f"Error running git diff: {result.stderr}")
+    exit(1)
 
-    if "TODO: FIX THIS HACK" in full_diff:
-        print("❌ Error: Found a forbidden string in the diff. Blocking PR.")
-        sys.exit(1)
+diff = result.stdout
 
-    print("✅ Analysis complete. Everything looks good!")
+if not diff:
+    print("No changes detected between the two commits.")
+    exit(0)
 
-if __name__ == "__main__":
-    main()
+#TODO: Tools, 1 for snippets 1 for whole file. in order to reduce the token consumption and increase quality. 
+response = client.responses.create(
+    model="gpt-4.1-mini",
+    input=(
+        "You are a code reviewer. Review the following git diff and provide a short, "
+        "concise code review. Focus on bugs, issues, and important observations only. "
+        "Be direct and brief.\n\n"
+        f"{diff}"
+    )
+)
+
+print(response.output_text)

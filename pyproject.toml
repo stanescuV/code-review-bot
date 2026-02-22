@@ -1,0 +1,11 @@
+[project]
+name = "code-review-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "anthropic>=0.83.0",
+    "dotenv>=0.9.9",
+    "openai>=2.21.0",
+]

@@ -26,6 +26,8 @@ if result.returncode != 0:
 
 diff = result.stdout
 
+print(diff)
+
 if not diff:
     print("No changes detected between the two commits.")
     exit(0)

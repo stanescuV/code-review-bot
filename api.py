@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from script import create_code_review
 import os
 
+#TEST
 app = FastAPI()
 
 load_dotenv()
@@ -32,7 +33,7 @@ async def github_webhook(request: Request):
     print(f"  head_sha: {head_sha}")
 
     diff_url = pr.get("diff_url")
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         response = await client.get(diff_url)
         diff = response.text
 

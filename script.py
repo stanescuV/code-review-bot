@@ -1,8 +1,6 @@
 from openai import OpenAI
 
-# TEST IF THE WEBHOOK WORKS
-#Second test if webhook works
-# Thrid test if webhook works
+#This test will work for sur
 def create_code_review(diff, api_key):
     client = OpenAI(api_key=api_key)
 

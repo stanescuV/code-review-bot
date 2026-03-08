@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from script import create_code_review
 import os
 
+#TEST
 app = FastAPI()
 
 load_dotenv()

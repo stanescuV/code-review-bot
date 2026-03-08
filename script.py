@@ -16,5 +16,5 @@ def create_code_review(diff, api_key):
     )
 )
 
-    print(response.output_text)
+    return response.output_text
 

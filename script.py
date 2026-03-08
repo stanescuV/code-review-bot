@@ -30,15 +30,14 @@ if not diff:
     print("No changes detected between the two commits.")
     exit(0)
 
-#TODO: Tools, 1 for snippets 1 for whole file. in order to reduce the token consumption and increase quality. 
-#This is a reminder for the todo
-#TEST
+
 response = client.responses.create(
     model="gpt-4.1-mini",
     input=(
         "You are a code reviewer. Review the following git diff and provide a short, "
         "concise code review. Focus on bugs, issues, and important observations only. "
         "Be direct and brief.\n\n"
+        
         f"{diff}"
     )
 )

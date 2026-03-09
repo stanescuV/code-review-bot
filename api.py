@@ -1,15 +1,10 @@
 import httpx
 from fastapi import FastAPI, Request
-from dotenv import load_dotenv
-from script import create_code_review
-import os
+from script import run_code_review_with_tools
 
 #TEST
 app = FastAPI()
 
-load_dotenv()
-
-api_key=os.environ.get("OPENAI_API_KEY", "").strip()
 
 @app.post("/webhook")
 async def github_webhook(request: Request):
@@ -37,5 +32,5 @@ async def github_webhook(request: Request):
         response = await client.get(diff_url)
         diff = response.text
 
-    chatbot_answer = create_code_review(diff, api_key)
+    chatbot_answer = run_code_review_with_tools(diff)
     return {"status": "ok", "pr": pr_number, "action": action, "chatbot_answer": chatbot_answer}

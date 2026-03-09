@@ -1,8 +1,13 @@
 import httpx
 from fastapi import FastAPI, Request
+from dotenv import load_dotenv
 from script import run_code_review_with_tools
+from github import post_pr_comment, post_commit_status
+
+load_dotenv()
 
 app = FastAPI()
+
 
 @app.post("/webhook")
 async def github_webhook(request: Request):
@@ -14,7 +19,9 @@ async def github_webhook(request: Request):
     if not pr:
         return {"status": "ignored", "reason": "not a pull_request event"}
 
-    base_sha = pr.get("base", {}).get("sha")
+    if action not in ("opened", "synchronize"):
+        return {"status": "ignored", "reason": f"action '{action}' does not require review"}
+
     head_sha = pr.get("head", {}).get("sha")
     repo = payload.get("repository", {}).get("full_name")
     pr_number = pr.get("number")
@@ -22,7 +29,6 @@ async def github_webhook(request: Request):
 
     print(f"PR #{pr_number} [{action}]: {pr_title}")
     print(f"  repo:     {repo}")
-    print(f"  base_sha: {base_sha}")
     print(f"  head_sha: {head_sha}")
 
     diff_url = pr.get("diff_url")
@@ -30,5 +36,14 @@ async def github_webhook(request: Request):
         response = await client.get(diff_url)
         diff = response.text
 
-    chatbot_answer = run_code_review_with_tools(diff)
+        chatbot_answer, critical = run_code_review_with_tools(diff)
+
+        if chatbot_answer:
+            await post_pr_comment(client, repo, pr_number, chatbot_answer)
+
+        if critical:
+            await post_commit_status(client, repo, head_sha, "failure", "Critical issue detected — merge blocked.")
+        else:
+            await post_commit_status(client, repo, head_sha, "success", "Code review passed.")
+
     return {"status": "ok", "pr": pr_number, "action": action, "chatbot_answer": chatbot_answer}

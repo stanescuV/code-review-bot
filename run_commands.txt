@@ -1,0 +1,20 @@
+docker build -t code-review-bot .
+
+docker run -p 8000:8000 --env-file .env code-review-bot
+
+
+curl -X POST http://localhost:8000/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "opened",
+    "pull_request": {
+      "number": 1,
+      "title": "Test PR",
+      "diff_url": "https://github.com/torvalds/linux/pull/1084.diff",
+      "base": {"sha": "abc123"},
+      "head": {"sha": "def456"}
+    },
+    "repository": {
+      "full_name": "your-user/your-repo"
+    }
+  }'

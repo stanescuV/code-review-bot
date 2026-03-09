@@ -1,6 +1,6 @@
 # Code Review Bot
 
-A GitHub webhook bot that automatically reviews pull requests using OpenAI. If a critical issue is detected (security vulnerability, severe bug, data loss risk), it sends an alert email to a configured recipient.
+A GitHub webhook bot that automatically reviews pull requests using OpenAI. If a critical issue is detected (security vulnerability, severe bug, data loss risk), it sends an alert email via [Resend](https://resend.com).
 
 ---
 
@@ -9,7 +9,7 @@ A GitHub webhook bot that automatically reviews pull requests using OpenAI. If a
 1. GitHub sends a webhook to your server when a PR is opened/updated
 2. The server fetches the PR diff and sends it to OpenAI for review
 3. OpenAI returns a code review summary
-4. If the issue is critical, OpenAI calls the `send_alert_email` tool and an email is sent automatically
+4. If the issue is critical, OpenAI calls the `send_alert_email` tool and an email is sent automatically via Resend
 
 ---
 
@@ -18,12 +18,14 @@ A GitHub webhook bot that automatically reviews pull requests using OpenAI. If a
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
 - Docker (optional, for containerized deployment)
-- A Gmail account with 2-Step Verification enabled
+- A [Resend](https://resend.com) account (free tier: 3,000 emails/month)
 - An OpenAI API key
 
 ---
 
+
 ## 1. Install uv
+## I like UV because it's faster than PIP :D
 
 **Windows (PowerShell):**
 ```powershell
@@ -72,9 +74,8 @@ Open `.env` and fill in the values:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key
-ALERT_EMAIL=your_gmail@gmail.com
-ALERT_EMAIL_PASSWORD=your_gmail_app_password
 RECIPIENT_EMAIL=recipient@example.com
+RESEND_API_KEY=your_resend_api_key
 ```
 
 ### Getting your OpenAI API Key
@@ -82,16 +83,12 @@ RECIPIENT_EMAIL=recipient@example.com
 2. Click **Create new secret key**
 3. Copy and paste it as `OPENAI_API_KEY`
 
-### Getting a Gmail App Password
+### Getting a Resend API Key
+1. Sign up at [resend.com](https://resend.com) (free)
+2. Go to **API Keys** → **Create API Key**
+3. Copy and paste it as `RESEND_API_KEY`
 
-> Regular Gmail passwords do NOT work. You must use an App Password.
-
-1. Make sure **2-Step Verification** is enabled on your Google account:
-   [myaccount.google.com/security](https://myaccount.google.com/security)
-2. Go to [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-3. Enter an app name (e.g. `code-review-bot`) and click **Create**
-4. Copy the 16-character code (e.g. `abcd efgh ijkl mnop`)
-5. Paste it as `ALERT_EMAIL_PASSWORD` (spaces are fine)
+> Free tier includes 3,000 emails/month and 100/day — more than enough for a code review bot.
 
 ---
 
@@ -114,17 +111,42 @@ docker build -t code-review-bot .
 
 **Run the container** (loads variables from your `.env`):
 ```bash
-docker run -p 8000:8000 --env-file .env code-review-bot
+docker run -d --name code-review-bot --network host --env-file .env --restart unless-stopped code-review-bot
+```
+
+**Useful commands:**
+```bash
+docker logs code-review-bot        # view logs
+docker logs -f code-review-bot     # follow logs live
+docker ps                          # check running containers
 ```
 
 ---
 
-## 7. Connect GitHub Webhook
+## 7. Deploy Updates (VPS)
+
+After pushing changes, run on your VPS:
+
+```bash
+git pull
+docker build -t code-review-bot .
+docker stop code-review-bot && docker rm code-review-bot
+docker run -d --name code-review-bot --network host --env-file .env --restart unless-stopped code-review-bot
+```
+
+Or use the `deploy.sh` script:
+```bash
+bash deploy.sh
+```
+
+---
+
+## 8. Connect GitHub Webhook
 
 1. Go to your GitHub repository → **Settings** → **Webhooks** → **Add webhook**
-2. Set **Payload URL** to your server's public URL (e.g. via [ngrok](https://ngrok.com) for local testing):
+2. Set **Payload URL** to your server's public URL:
    ```
-   https://your-server.com/webhook
+   http://your-vps-ip:8000/webhook
    ```
 3. Set **Content type** to `application/json`
 4. Select **Pull request** events
@@ -138,9 +160,7 @@ Use the generated `https://xxxx.ngrok.io` URL as your webhook payload URL.
 
 ---
 
-## 8. Test with curl
-
-You can simulate a GitHub webhook event locally:
+## 9. Test with curl
 
 ```bash
 curl -X POST http://localhost:8000/webhook \
@@ -194,6 +214,5 @@ code-review-bot/
 | Variable | Description |
 |---|---|
 | `OPENAI_API_KEY` | Your OpenAI API key |
-| `ALERT_EMAIL` | Gmail address used to send alerts |
-| `ALERT_EMAIL_PASSWORD` | Gmail App Password (16-char code) |
 | `RECIPIENT_EMAIL` | Email address that receives critical alerts |
+| `RESEND_API_KEY` | Your Resend API key for sending emails |

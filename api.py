@@ -2,7 +2,6 @@ import httpx
 from fastapi import FastAPI, Request
 from script import run_code_review_with_tools
 
-#TEST
 app = FastAPI()
 
 @app.post("/webhook")

@@ -1,31 +1,23 @@
-import smtplib
 import os
-from email.mime.text import MIMEText
-from dotenv import load_dotenv
+import resend
 
-load_dotenv()
 
 def send_alert_email(message: str) -> str:
     """Send an alert email when a critical issue is found in the code review."""
-    sender = os.environ.get("ALERT_EMAIL", "").strip()
-    password = os.environ.get("ALERT_EMAIL_PASSWORD", "").strip()
+    resend.api_key = os.environ.get("RESEND_API_KEY", "").strip()
     recipient = os.environ.get("RECIPIENT_EMAIL", "").strip()
 
-    if not sender or not password or not recipient:
-        return "Email alert failed: missing EMAIL, EMAIL_PASSWORD, or RECIPIENT_EMAIL in .env"
+    if not resend.api_key or not recipient:
+        return "Email alert failed: missing RESEND_API_KEY or RECIPIENT_EMAIL in .env"
 
-    msg = MIMEText(message)
-    msg["Subject"] = "CRITICAL: Code Review Alert"
-    msg["From"] = sender
-    msg["To"] = recipient
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(sender, password)
-        smtp.sendmail(sender, recipient, msg.as_string())
+    resend.Emails.send({
+        "from": "Code Review Bot <onboarding@resend.dev>",
+        "to": recipient,
+        "subject": "CRITICAL: Code Review Alert",
+        "text": message,
+    })
 
     return f"Alert email sent to {recipient}"
-
-print(send_alert_email("A critical issue was found in the code review."))
 
 TOOLS = [
     {

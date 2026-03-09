@@ -38,11 +38,14 @@ def run_code_review_with_tools(diff: str) -> tuple[str, bool]:
         tools=TOOLS,
     )
 
+    comment = response.output_text
     for output in response.output:
         if output.type == "function_call" and output.name == "send_alert_email":
             args = json.loads(output.arguments)
             result = send_alert_email(args["message"])
             print(f"Tool called: send_alert_email -> {result}")
             critical = True
+            if not comment:
+                comment = f"[CRITICAL] {args['message']}"
 
-    return response.output_text, critical
+    return comment, critical

@@ -19,7 +19,7 @@ async def github_webhook(request: Request):
     if not pr:
         return {"status": "ignored", "reason": "not a pull_request event"}
 
-    if action not in ("opened", "synchronize"):
+    if action not in ("opened", "synchronize", "reopened"):
         return {"status": "ignored", "reason": f"action '{action}' does not require review"}
 
     head_sha = pr.get("head", {}).get("sha")

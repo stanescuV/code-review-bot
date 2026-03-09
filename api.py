@@ -1,10 +1,10 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import httpx
 from fastapi import FastAPI, Request
-from dotenv import load_dotenv
 from script import run_code_review_with_tools
 from github import post_pr_comment, post_commit_status
-
-load_dotenv()
 
 app = FastAPI()
 

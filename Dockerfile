@@ -7,7 +7,7 @@ COPY pyproject.toml .
 RUN uv sync
 
 # Copy application code
-COPY api.py script.py git_diff.py ./
+COPY api.py script.py ./
 
 EXPOSE 8000
 

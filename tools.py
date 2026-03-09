@@ -1,6 +1,9 @@
 import smtplib
 import os
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def send_alert_email(message: str) -> str:
     """Send an alert email when a critical issue is found in the code review."""
@@ -22,6 +25,7 @@ def send_alert_email(message: str) -> str:
 
     return f"Alert email sent to {recipient}"
 
+print(send_alert_email("A critical issue was found in the code review."))
 
 TOOLS = [
     {

@@ -134,11 +134,6 @@ docker stop code-review-bot && docker rm code-review-bot
 docker run -d --name code-review-bot --network host --env-file .env --restart unless-stopped code-review-bot
 ```
 
-Or use the `deploy.sh` script:
-```bash
-bash deploy.sh
-```
-
 ---
 
 ## 8. Connect GitHub Webhook

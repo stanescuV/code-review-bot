@@ -14,7 +14,7 @@ async def github_webhook(request: Request):
     if not pr:
         return {"status": "ignored", "reason": "not a pull_request event"}
 
-        base_sha = pr.get("base", {}).get("sha")
+    base_sha = pr.get("base", {}).get("sha")
     head_sha = pr.get("head", {}).get("sha")
     repo = payload.get("repository", {}).get("full_name")
     pr_number = pr.get("number")

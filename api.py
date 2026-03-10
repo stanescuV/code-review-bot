@@ -4,7 +4,7 @@ load_dotenv()
 import httpx
 from fastapi import FastAPI, Request
 from script import run_code_review_with_tools
-from github import post_pr_comment, post_commit_status
+from tools import post_commit_status
 
 app = FastAPI()
 
@@ -36,14 +36,11 @@ async def github_webhook(request: Request):
         response = await client.get(diff_url)
         diff = response.text
 
-        chatbot_answer, critical = run_code_review_with_tools(diff)
+    critical = run_code_review_with_tools(diff, repo, pr_number)
 
-        if chatbot_answer:
-            await post_pr_comment(client, repo, pr_number, chatbot_answer)
+    if critical:
+        post_commit_status(repo, head_sha, "failure", "Critical issue detected — merge blocked.")
+    else:
+        post_commit_status(repo, head_sha, "success", "Code review passed.")
 
-        if critical:
-            await post_commit_status(client, repo, head_sha, "failure", "Critical issue detected — merge blocked.")
-        else:
-            await post_commit_status(client, repo, head_sha, "success", "Code review passed.")
-
-    return {"status": "ok", "pr": pr_number, "action": action, "chatbot_answer": chatbot_answer}
+    return {"status": "ok", "pr": pr_number, "action": action}
